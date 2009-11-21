@@ -2,6 +2,8 @@ require 'fileutils'
 require 'rubygems'
 require 'rubygems/commands/unpack_command'
 require 'rawr'
+require 'fastercsv'
+require 'lib/ruby/connect'
 
 Gems = %w(activerecord
           activerecord-jdbc-adapter
@@ -65,5 +67,61 @@ desc 'Combine staged app and jruby-complete files into one jar'
 task :big_jar do
   Dir.chdir('package/bigjar') do
     backtick 'jar -cfm appapp.jar manifest -C contents/ .'
+  end
+end
+
+class AddCategoriesTable < ActiveRecord::Migration
+  def self.up
+    create_table :categories do |t|
+      t.string :name
+    end
+  end
+
+  def self.down
+    drop_table :categories
+  end
+end
+
+class AddAppsTable < ActiveRecord::Migration
+  def self.up
+    create_table :apps do |t|
+      t.string  :name
+      t.integer :rank
+      t.integer :category_id
+      t.decimal :price, :scale => 2
+      t.date    :released_on
+    end
+  end
+
+  def self.down
+    drop_table :apps
+  end
+end
+
+desc 'Create empty app database'
+task :create_db do
+  AddAppsTable.migrate(:up)
+  AddCategoriesTable.migrate(:up)
+end
+
+desc 'Populate empty app database from CSV file'
+task :populate_db do
+  categories = {}
+
+  FasterCSV.foreach('apps.csv') do |row|
+    next if row[0] == 'name' # header
+
+    name, rank, list, price, released_on, _, _ = row
+
+    cat = /(.+) Full List$/.match(list)[1].downcase.gsub(' ', '_')
+    unless categories[cat]
+      categories[cat] = (Category.create :name => cat).id
+    end
+
+    App.create(:name => name,
+               :rank => rank.to_i,
+               :category_id => categories[cat],
+               :price => price,
+               :released_on => Date.parse(released_on))
   end
 end

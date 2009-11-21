@@ -18,6 +18,11 @@ require 'haml'
 require 'connect'
 
 class App < ActiveRecord::Base
+  belongs_to :category
+end
+
+class Category < ActiveRecord::Base
+  has_many :apps
 end
 
 class AppApp < Sinatra::Base
@@ -39,4 +44,4 @@ __END__
   = yield
 
 @@ index
-%p= App.count
+%p= App.first.category.name
