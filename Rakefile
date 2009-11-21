@@ -3,7 +3,7 @@ require 'rubygems'
 require 'rubygems/commands/unpack_command'
 require 'rawr'
 require 'fastercsv'
-require 'lib/ruby/connect'
+require 'lib/ruby/models'
 
 Gems = %w(activerecord
           activerecord-jdbc-adapter

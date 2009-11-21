@@ -15,15 +15,7 @@ $: << File.dirname(__FILE__)
 
 require 'sinatra/base'
 require 'haml'
-require 'connect'
-
-class App < ActiveRecord::Base
-  belongs_to :category
-end
-
-class Category < ActiveRecord::Base
-  has_many :apps
-end
+require 'models'
 
 class AppApp < Sinatra::Base
   use_in_file_templates!
@@ -44,4 +36,7 @@ __END__
   = yield
 
 @@ index
-%p= App.first.category.name
+%p
+  = Category.first.apps.count
+  = Category.first.name
+  app(s)
