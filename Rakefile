@@ -19,6 +19,23 @@ def backtick(command)
   raise "#{command} returned error #{$?}" unless $? == 0
 end
 
+desc 'Write version numbers of installed gems into app'
+task :update_vendor do |t|
+  dirs = Gems.map do |gem|
+    dependency = Gem::Dependency.new gem, nil
+    version    = Gem.source_index.search(dependency).last.version.to_s
+    "#{gem}-#{version}"
+  end
+
+  File.open('lib/ruby/vendor_everything.rb', 'w') do |f|
+    f.puts "# This file is auto-generated; use 'rake #{t}' to update it.\n\n"
+
+    f.puts "%w(" + dirs.join("\n   ") + ").each do |dir|"
+    f.puts '  $: << File.dirname(__FILE__) + "/#{dir}/lib"' # single quotes!
+    f.puts "end"
+  end
+end
+
 desc 'Unpack installed gems into our lib/ruby'
 task :unpack_gems do
   unpack = Gem::Commands::UnpackCommand.new
