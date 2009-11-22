@@ -1,19 +1,23 @@
 require 'fileutils'
 require 'rubygems'
 require 'rubygems/commands/unpack_command'
+require 'activerecord'
+require 'active_record/connection_adapters/jdbc_adapter'
 require 'fastercsv'
 require 'rake/clean'
 require 'rawr'
 require 'lib/ruby/models'
 
 task :default => %w(
-  gems:unpack gems:unjar
+  gems:bundle
+  gems:unjar
   rawr:jar
   app:stage app:manifest app:package)
 
 # rawr will remove the entire package/ dir for us
 task :clobber => 'rawr:clean'
 
+# TODO: DRY this up; the gems are declared in the Gemfile
 Gems = %w(activerecord
           activerecord-jdbc-adapter
           activerecord-jdbcsqlite3-adapter
@@ -23,42 +27,16 @@ Gems = %w(activerecord
           rack
           sinatra)
 
-# vendored gems are considered intermediate build products
-Gems.each do |gem|
-  Dir["lib/ruby/#{gem}*"].grep(/#{gem}-[.0-9]+/).each do |dir|
-    CLEAN.include dir
-  end
-end
+# TODO: see if Bundler has a clean/clobber mechanism
 
 # jars extracted from gems are considered intermediate build products
 CLEAN.include 'package/classes'
 
 namespace :gems do
-  desc 'Write version numbers of installed gems into app'
-  task :vendor do |t|
-    dirs = Gems.map do |gem|
-      dependency = Gem::Dependency.new gem, nil
-      version    = Gem.source_index.search(dependency).last.version.to_s
-      "#{gem}-#{version}"
-    end
-
-    File.open('lib/ruby/vendor_everything.rb', 'w') do |f|
-      f.puts "# This file is auto-generated;"
-      f.puts "# use 'rake #{t}' to update it.\n\n"
-
-      f.puts "%w(" + dirs.join("\n   ") + ").each do |dir|"
-      f.puts '  $: << File.dirname(__FILE__) + "/#{dir}/lib"' # single quotes!
-      f.puts "end"
-    end
-  end
-
-  desc 'Unpack installed gems into our lib/ruby'
-  task :unpack do
-    unpack = Gem::Commands::UnpackCommand.new
-    unpack.options[:target] = 'lib/ruby'
-    unpack.options[:args] = Gems
-
-    unpack.execute
+  desc 'Extract gems into app directory'
+  task :bundle do
+    # TODO: go through Bundler's library instead of launching a process
+    sh 'jruby -S gem bundle'
   end
 
   directory 'package/classes'

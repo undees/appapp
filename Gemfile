@@ -1,0 +1,11 @@
+bundle_path 'lib/ruby'
+bin_path    'lib/ruby/bin'
+
+gem 'activerecord'
+gem 'activerecord-jdbc-adapter'
+gem 'activerecord-jdbcsqlite3-adapter'
+gem 'activesupport'
+gem 'haml'
+gem 'jdbc-sqlite3'
+gem 'rack'
+gem 'sinatra'

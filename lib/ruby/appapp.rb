@@ -1,7 +1,12 @@
 $: << File.dirname(__FILE__)
-require 'vendor_everything'
-require 'sinatra/base'
+require 'environment'
+
+require 'activesupport'
+require 'activerecord'
 require 'haml'
+require 'rack'
+require 'sinatra/base'
+
 require 'models'
 
 class AppApp < Sinatra::Base
