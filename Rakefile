@@ -1,9 +1,13 @@
 require 'fileutils'
 require 'rubygems'
 require 'rubygems/commands/unpack_command'
-require 'rawr'
 require 'fastercsv'
+require 'rake/clean'
+require 'rawr'
 require 'lib/ruby/models'
+
+# rawr will remove the entire package/ dir for us
+task :clobber => 'rawr:clean'
 
 Gems = %w(activerecord
           activerecord-jdbc-adapter
@@ -13,6 +17,16 @@ Gems = %w(activerecord
           jdbc-sqlite3
           rack
           sinatra)
+
+# vendored gems are considered intermediate build products
+Gems.each do |gem|
+  Dir["lib/ruby/#{gem}*"].grep(/#{gem}-[.0-9]+/).each do |dir|
+    CLEAN.include dir
+  end
+end
+
+# jars extracted from gems are considered intermediate build products
+CLEAN.include 'package/classes'
 
 desc 'Write version numbers of installed gems into app'
 task :update_vendor do |t|
@@ -38,15 +52,6 @@ task :unpack_gems do
   unpack.options[:args] = Gems
 
   unpack.execute
-end
-
-desc 'Remove unpacked gems from our lib/ruby'
-task :clobber_gems do
-  Gems.each do |gem|
-    Dir["lib/ruby/#{gem}*"].grep(/#{gem}-[.0-9]+/).each do |dir|
-      FileUtils.rm_rf dir
-    end
-  end
 end
 
 desc 'Extract jars from our gems into staging area'
