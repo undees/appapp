@@ -38,7 +38,7 @@ __END__
 - Category.find(:all).each do |cat|
   %h2
     top
-    %a{:href => "/category/#{cat.name}"} #{cat.name} 
+    %a{:href => "/category/#{cat.name}"} #{cat.name}
   %ol
   - App.of_type(cat).awesome.each do |app|
     %li
