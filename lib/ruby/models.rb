@@ -9,6 +9,9 @@ ActiveRecord::Base.establish_connection \
 
 class App < ActiveRecord::Base
   belongs_to :category
+
+  named_scope :awesome, :conditions => {:rank => 1..10}
+  named_scope :of_type, lambda {|cat| {:conditions => {:category_id => cat}}}
 end
 
 class Category < ActiveRecord::Base
