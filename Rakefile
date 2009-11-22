@@ -14,11 +14,6 @@ Gems = %w(activerecord
           rack
           sinatra)
 
-def backtick(command)
-  `#{command}`
-  raise "#{command} returned error #{$?}" unless $? == 0
-end
-
 desc 'Write version numbers of installed gems into app'
 task :update_vendor do |t|
   dirs = Gems.map do |gem|
@@ -60,7 +55,7 @@ task :extract_gem_jars do
     path = File.expand_path(jar)
 
     Dir.chdir 'package/classes' do
-      backtick "jar -xf #{path}"
+      sh "jar -xf #{path}"
     end
   end
 end
@@ -68,8 +63,8 @@ end
 desc 'Extract app and jruby-complete for later combining'
 task :stage_big_jar do
   Dir.chdir('package/bigjar/contents') do
-    backtick 'jar -xf ../../jar/appapp.jar'
-    backtick 'jar -xf ../../jar/lib/java/jruby-complete.jar'
+    sh 'jar -xf ../../jar/appapp.jar'
+    sh 'jar -xf ../../jar/lib/java/jruby-complete.jar'
   end
 end
 
@@ -83,7 +78,7 @@ end
 desc 'Combine staged app and jruby-complete files into one jar'
 task :big_jar do
   Dir.chdir('package/bigjar') do
-    backtick 'jar -cfm appapp.jar manifest -C contents/ .'
+    sh 'jar -cfm appapp.jar manifest -C contents/ .'
   end
 end
 
