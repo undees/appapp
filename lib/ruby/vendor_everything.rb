@@ -1,4 +1,5 @@
-# This file is auto-generated; use 'rake update_vendor' to update it.
+# This file is auto-generated;
+# use 'rake gems:vendor' to update it.
 
 %w(activerecord-2.3.4
    activerecord-jdbc-adapter-0.9.2

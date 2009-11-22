@@ -6,6 +6,11 @@ require 'rake/clean'
 require 'rawr'
 require 'lib/ruby/models'
 
+task :default => %w(
+  gems:unpack gems:unjar
+  rawr:jar
+  app:stage app:manifest app:package)
+
 # rawr will remove the entire package/ dir for us
 task :clobber => 'rawr:clean'
 
@@ -38,7 +43,8 @@ namespace :gems do
     end
 
     File.open('lib/ruby/vendor_everything.rb', 'w') do |f|
-      f.puts "# This file is auto-generated; use 'rake #{t}' to update it.\n\n"
+      f.puts "# This file is auto-generated;"
+      f.puts "# use 'rake #{t}' to update it.\n\n"
 
       f.puts "%w(" + dirs.join("\n   ") + ").each do |dir|"
       f.puts '  $: << File.dirname(__FILE__) + "/#{dir}/lib"' # single quotes!
@@ -125,7 +131,7 @@ end
 
 namespace :db do
   desc 'Create empty app database'
-  task :createb do
+  task :create do
     AddAppsTable.migrate(:up)
     AddCategoriesTable.migrate(:up)
   end
