@@ -1,11 +1,6 @@
-bundle_path 'lib/ruby'
-bin_path    'lib/ruby/bin'
+source :gemcutter
 
 gem 'activerecord'
-gem 'activerecord-jdbc-adapter'
-gem 'activerecord-jdbcsqlite3-adapter'
-gem 'activesupport'
+gem 'activerecord-jdbcsqlite3-adapter', '>= 0.9.2'
 gem 'haml'
-gem 'jdbc-sqlite3'
-gem 'rack'
 gem 'sinatra'

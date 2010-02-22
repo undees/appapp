@@ -5,22 +5,17 @@ import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
-
-
 import java.util.ArrayList;
-import org.jruby.Ruby;
-import org.jruby.RubyInstanceConfig;
-import org.jruby.javasupport.JavaEmbedUtils;
+import org.jruby.embed.ScriptingContainer;
 
 public class Main
 {
   public static void main(String[] args) throws Exception
-  {   
-    RubyInstanceConfig config = new RubyInstanceConfig();
-    config.setArgv(args);
-    Ruby runtime = JavaEmbedUtils.initialize(new ArrayList(0), config);
+  {
+    ScriptingContainer container = new ScriptingContainer();
+//     container.setArgv(args);
     String mainRubyFile = "main";
-   
+
     ArrayList<String> config_data = new ArrayList<String>();
     try{
       java.io.InputStream ins = Main.class.getClassLoader().getResourceAsStream("run_configuration");
@@ -46,7 +41,7 @@ public class Main
         }
     }
 
-    runtime.evalScriptlet("require '" + mainRubyFile + "'");
+    container.runScriptlet("require '" + mainRubyFile + "'");
   }
 
   public static URL getResource(String path) {

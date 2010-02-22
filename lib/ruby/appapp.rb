@@ -1,8 +1,8 @@
 $: << File.dirname(__FILE__)
 require 'environment'
 
-require 'activesupport'
-require 'activerecord'
+require 'active_support'
+require 'active_record'
 require 'haml'
 require 'rack'
 require 'sinatra/base'

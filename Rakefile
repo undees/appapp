@@ -1,12 +1,8 @@
 require 'fileutils'
 require 'rubygems'
 require 'rubygems/commands/unpack_command'
-require 'activerecord'
-require 'active_record/connection_adapters/jdbc_adapter'
-require 'fastercsv'
 require 'rake/clean'
 require 'rawr'
-require 'lib/ruby/models'
 
 task :default => %w(
   gems:bundle
@@ -17,16 +13,6 @@ task :default => %w(
 # rawr will remove the entire package/ dir for us
 task :clobber => 'rawr:clean'
 
-# TODO: DRY this up; the gems are declared in the Gemfile
-Gems = %w(activerecord
-          activerecord-jdbc-adapter
-          activerecord-jdbcsqlite3-adapter
-          activesupport
-          haml
-          jdbc-sqlite3
-          rack
-          sinatra)
-
 # TODO: see if Bundler has a clean/clobber mechanism
 
 # jars extracted from gems are considered intermediate build products
@@ -36,7 +22,27 @@ namespace :gems do
   desc 'Extract gems into app directory'
   task :bundle do
     # TODO: go through Bundler's library instead of launching a process
-    sh 'jruby -S gem bundle'
+    sh 'jruby -S bundle install lib/ruby --disable-shared-gems'
+  end
+
+  desc 'Configure app environment for installed gems'
+  task :environment do |t|
+    dirs = Dir.chdir('lib/ruby/gems') do
+      Dir['*'].to_a
+    end
+
+    File.open('lib/ruby/environment.rb', 'w') do |f|
+      f.puts "# This file is auto-generated;"
+      f.puts "# use 'rake #{t}' to update it.\n\n"
+
+      f.puts "gem_root = File.join(File.dirname(__FILE__), 'gems/')."
+      f.puts "  gsub(%r(^/gems/$),'gems/')"
+      f.puts
+
+      f.puts "%w(" + dirs.join("\n   ") + ").each do |dir|"
+      f.puts '  $: << "#{gem_root}#{dir}/lib"' # single quotes!
+      f.puts "end"
+    end
   end
 
   directory 'package/classes'
@@ -79,43 +85,52 @@ namespace :app do
   end
 end
 
-class AddCategoriesTable < ActiveRecord::Migration
-  def self.up
-    create_table :categories do |t|
-      t.string :name
-    end
-  end
-
-  def self.down
-    drop_table :categories
-  end
-end
-
-class AddAppsTable < ActiveRecord::Migration
-  def self.up
-    create_table :apps do |t|
-      t.string  :name
-      t.integer :rank
-      t.integer :category_id
-      t.decimal :price, :scale => 2
-      t.date    :released_on
-    end
-  end
-
-  def self.down
-    drop_table :apps
-  end
-end
-
 namespace :db do
   desc 'Create empty app database'
   task :create do
+    require 'active_record'
+    require 'active_record/connection_adapters/jdbc_adapter'
+    require 'lib/ruby/models'
+
+    class AddCategoriesTable < ActiveRecord::Migration
+      def self.up
+        create_table :categories do |t|
+          t.string :name
+        end
+      end
+
+      def self.down
+        drop_table :categories
+      end
+    end
+
+    class AddAppsTable < ActiveRecord::Migration
+      def self.up
+        create_table :apps do |t|
+          t.string  :name
+          t.integer :rank
+          t.integer :category_id
+          t.decimal :price, :scale => 2
+          t.date    :released_on
+        end
+      end
+
+      def self.down
+        drop_table :apps
+      end
+    end
+
     AddAppsTable.migrate(:up)
     AddCategoriesTable.migrate(:up)
   end
 
   desc 'Populate empty app database from CSV file'
   task :populate do
+    require 'active_record'
+    require 'active_record/connection_adapters/jdbc_adapter'
+    require 'lib/ruby/models'
+    require 'fastercsv'
+
     categories = {}
 
     FasterCSV.foreach('apps.csv') do |row|
